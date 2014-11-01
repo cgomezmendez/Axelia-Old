@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 
 public class LocationDetailActivity extends ActionBarActivity {
+    private Location mCurrentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +22,14 @@ public class LocationDetailActivity extends ActionBarActivity {
                     .add(R.id.container, new LocationDetailFragment())
                     .commit();
         }
+        int id = getIntent().getExtras().getInt("id");
+        String name = getIntent().getExtras().getString("name");
+        String alertMessage = getIntent().getExtras().getString("alertMessage");
+        mCurrentLocation = new Location();
+        mCurrentLocation.setId(id);
+        mCurrentLocation.setName(name);
+        mCurrentLocation.setAlertMessage(alertMessage);
+        getSupportActionBar().setSubtitle(mCurrentLocation.getName());
     }
 
 

@@ -70,6 +70,9 @@ public class CitiesListAdapter extends BaseAdapter implements ListAdapter {
                     Log.d(LOG_TAG, location.getName());
                 }
                 Intent locationDetailIntent = new Intent(mContext, LocationDetailActivity.class);
+                locationDetailIntent.putExtra("id", location.getId());
+                locationDetailIntent.putExtra("name", location.getName());
+                locationDetailIntent.putExtra("alertMessage", location.getAlertMessage());
                 mContext.startActivity(locationDetailIntent);
             }
         });

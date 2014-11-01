@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="10dp" >
+<shape>
+    <gradient
+        android:startColor="#DCDCDC"
+        android:centerColor="#DCDCDC"
+        android:endColor="#DCDCDC"
+        />
+</shape>
+</inset>

@@ -12,6 +12,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,7 +107,6 @@ public class HomeActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.home, menu);
         return true;
     }
 
@@ -140,6 +140,7 @@ public class HomeActivity extends ActionBarActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
             loadData();
         }
 
@@ -232,12 +233,21 @@ public class HomeActivity extends ActionBarActivity {
             });
         }
 
-
-
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            super.onCreateOptionsMenu(menu, inflater);
+            getActivity().getMenuInflater().inflate(R.menu.home, menu);
+        }
     }
 
     public static class AboutFragment extends Fragment {
         @InjectView(R.id.about_list) ListView listView;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_about, container, false);
