@@ -3,8 +3,9 @@
 
     <string name="app_name">Axelia</string>
     <string name="title_activity_home">Tráfico</string>
-    <string name="action_update" />
+    <string name="action_update"></string>
     <string name="cities_list_tab_title">Tráfico</string>
     <string name="about_tab_title">Información</string>
+    <string name="title_activity_location_detail">Tráfico</string>
 
 </resources>

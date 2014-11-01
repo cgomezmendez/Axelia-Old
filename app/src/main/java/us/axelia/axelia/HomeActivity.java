@@ -2,17 +2,20 @@ package us.axelia.axelia;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.os.Build;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -34,6 +37,8 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnItemClick;
+import butterknife.OnItemSelected;
 
 
 public class HomeActivity extends ActionBarActivity {
@@ -126,6 +131,8 @@ public class HomeActivity extends ActionBarActivity {
         private static final String LOCATION_URL = "http://www.axelia.us/api/Locations";
         @InjectView(R.id.location_list) ListView locationListView;
         private ProgressDialog progressDialog;
+        private List<Location> mLocations;
+        private MergeAdapter mAdapter;
 
         public CitiesListFragment() {
         }
@@ -157,13 +164,13 @@ public class HomeActivity extends ActionBarActivity {
                 progressDialog.dismiss();
                 progressDialog = null;
             }
-            List<Location> locations = new ArrayList<Location>();
+            mLocations = new ArrayList<Location>();
             Type listType = new TypeToken<List<Location>>(){}.getType();
             Gson gson = new Gson();
-            locations = gson.fromJson(response.toString(), listType);
+            mLocations = gson.fromJson(response.toString(), listType);
             List<Location> availableLocations = new ArrayList<Location>();
             List<Location> comingSoonLocations = new ArrayList<Location>();
-            for (Location location: locations) {
+            for (Location location: mLocations) {
                 if (location.getAlertMessage().equals("Próximamente")) {
                     comingSoonLocations.add(location);
                 }
@@ -173,12 +180,12 @@ public class HomeActivity extends ActionBarActivity {
             }
             CitiesListAdapter availableLocationsAdapter = new CitiesListAdapter(availableLocations, getActivity());
             CitiesListAdapter comingSoonLocationsAdapter = new CitiesListAdapter(comingSoonLocations, getActivity());
-            MergeAdapter mergeAdapter = new MergeAdapter();
-            mergeAdapter.addView(header("Ciudades"));
-            mergeAdapter.addAdapter(availableLocationsAdapter);
-            mergeAdapter.addView(header("Próximamente"));
-            mergeAdapter.addAdapter(comingSoonLocationsAdapter);
-            locationListView.setAdapter(mergeAdapter);
+            mAdapter = new MergeAdapter();
+            mAdapter.addView(header("Ciudades"));
+            mAdapter.addAdapter(availableLocationsAdapter);
+            mAdapter.addView(header("Próximamente"));
+            mAdapter.addAdapter(comingSoonLocationsAdapter);
+            locationListView.setAdapter(mAdapter);
         }
 
         private View header(String headerText) {
@@ -224,6 +231,9 @@ public class HomeActivity extends ActionBarActivity {
                 }
             });
         }
+
+
+
     }
 
     public static class AboutFragment extends Fragment {
@@ -250,6 +260,7 @@ public class HomeActivity extends ActionBarActivity {
             mAdapter.addSeparatorItem("Advertise With Us");
             mAdapter.addItem("Please contact us for information on advertising and promotional opportunities on this app.Email us at axeliatransito@gmail.com.");
         }
+
     }
 
 }

@@ -1,6 +1,8 @@
 package us.axelia.axelia;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ import java.util.List;
 public class CitiesListAdapter extends BaseAdapter implements ListAdapter {
     private List<Location> mLocations;
     private Activity mContext;
+    private static final String LOG_TAG = CitiesListAdapter.class.getSimpleName();
 
     public CitiesListAdapter(List<Location> locations, Activity context) {
         this.mLocations = locations;
@@ -54,9 +57,22 @@ public class CitiesListAdapter extends BaseAdapter implements ListAdapter {
             viewHolder.cityName = (TextView) rowView.findViewById(R.id.location_name_row);
             rowView.setTag(viewHolder);
         }
-        ViewHolder holder = (ViewHolder) rowView.getTag();
-        String locationName = mLocations.get(position).getName();
+        final ViewHolder holder = (ViewHolder) rowView.getTag();
+        final String locationName = mLocations.get(position).getName();
         holder.cityName.setText(locationName);
+        rowView.setClickable(true);
+        rowView.setTag(R.id.list_item,mLocations.get(position));
+        rowView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Location location = (Location) view.getTag(R.id.list_item);
+                if (BuildConfig.DEBUG) {
+                    Log.d(LOG_TAG, location.getName());
+                }
+                Intent locationDetailIntent = new Intent(mContext, LocationDetailActivity.class);
+                mContext.startActivity(locationDetailIntent);
+            }
+        });
         return rowView;
     }
 
