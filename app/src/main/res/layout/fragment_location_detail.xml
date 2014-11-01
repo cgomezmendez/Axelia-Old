@@ -2,10 +2,95 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingBottom="10dp"
     tools:context="us.axelia.axelia.LocationDetailActivity.LocationDetailFragment">
+    <LinearLayout android:id="@+id/adView"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true" />
+    <RelativeLayout
+        android:layout_below="@id/adView"
+        android:id="@+id/alert_message_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#00D800"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+        <TextView
+            android:id="@+id/alert_message_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textColor="@android:color/white"
+            android:textSize="30sp"
+            />
+    </RelativeLayout>
 
+    <TextView
+        android:layout_below="@id/alert_message_view_container"
+        android:id="@+id/city_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:textSize="24sp"
+        android:layout_centerHorizontal="true"/>
+    <TextView
+        android:layout_below="@id/city_name"
+        android:id="@+id/description_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="20dp"
+        android:paddingLeft="20dp" />
+
+    <Button
+        android:layout_alignParentBottom="true"
+        android:id="@+id/play_or_pause_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Play"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"
+        android:textColor="#196FD8"
+        android:paddingBottom="8dp"
+        android:paddingRight="20dp"
+        android:paddingLeft="20dp"
+        android:clickable="true"/>
+    <RelativeLayout
+        android:id="@+id/time_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/play_or_pause_view"
+        android:layout_centerHorizontal="true"
+        >
+        <SeekBar
+            android:id="@+id/audio_seek_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+        <TextView
+            android:id="@+id/current_time"
+            android:layout_below="@id/audio_seek_bar"
+            android:layout_alignParentLeft="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingRight="20dp"
+            android:paddingLeft="20dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="17sp" />
+        <TextView
+            android:id="@+id/duration_time"
+            android:layout_below="@id/audio_seek_bar"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingRight="20dp"
+            android:paddingLeft="20dp"
+            android:textSize="17sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="20dp"/>
+
+    </RelativeLayout>
 </RelativeLayout>

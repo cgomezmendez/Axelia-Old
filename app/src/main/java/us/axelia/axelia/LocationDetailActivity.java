@@ -1,13 +1,20 @@
 package us.axelia.axelia;
 
+import android.app.ProgressDialog;
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.io.File;
+import java.util.List;
 
 
 public class LocationDetailActivity extends ActionBarActivity {
@@ -52,7 +59,11 @@ public class LocationDetailActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class LocationDetailFragment extends Fragment {
+    public static class LocationDetailFragment extends Fragment implements AudiosDownloaderTask.AudioDownloadListener {
+        private static final String LOG_TAG = LocationDetailFragment.class.getSimpleName();
+        private static AudiosDownloaderTask downloaderTask;
+        private ProgressDialog progressDialog;
+        private MediaPlayer mMediaPlayer;
 
         public LocationDetailFragment() {
         }
@@ -62,6 +73,58 @@ public class LocationDetailActivity extends ActionBarActivity {
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_location_detail, container, false);
             return rootView;
+        }
+
+        @Override
+        public void onViewCreated(View view, Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            if (savedInstanceState != null) {
+                if (downloaderTask != null) {
+                    downloaderTask.addAudioDownloadListener(this);
+                }
+            }
+            loadData();
+
+        }
+
+        public void loadData() {
+            if (downloaderTask==null) {
+                if (progressDialog == null) {
+                    progressDialog = ProgressDialog.show(getActivity(),null, "Loading.... Please Wait...");
+                }
+                downloaderTask = new AudiosDownloaderTask(getActivity());
+                downloaderTask.addAudioDownloadListener(this);
+                LocationDetailActivity activity = (LocationDetailActivity) getActivity();
+                downloaderTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                        activity.mCurrentLocation.getId());
+            }
+        }
+
+        @Override
+        public void onAudioDownloadComplete(List<File> files) {
+            if (BuildConfig.DEBUG) {
+                Log.d(LOG_TAG, "files download complete");
+            }
+            downloaderTask = null;
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+                progressDialog = null;
+            }
+
+        }
+
+        @Override
+        public void onDetach() {
+            super.onDetach();
+            downloaderTask.removeAudioDownloadListener(this);
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+                progressDialog = null;
+            }
+            if (mMediaPlayer != null ) {
+                mMediaPlayer.release();
+                mMediaPlayer = null;
+            }
         }
     }
 }
