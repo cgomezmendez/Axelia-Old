@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -182,10 +184,21 @@ public class HomeActivity extends ActionBarActivity {
         private View header(String headerText) {
             LayoutInflater inflater = (LayoutInflater) getActivity()
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(R.layout.header_ciudades,null);
-            TextView cityNameHeader = (TextView) view.findViewById(R.id.city_name_header);
-            cityNameHeader.setText(headerText);
-            return view;
+            if (inflater!=null) {
+                View view = inflater.inflate(R.layout.header_ciudades, null);
+                TextView cityNameHeader = (TextView) view.findViewById(R.id.city_name_header);
+                cityNameHeader.setText(headerText);
+                return view;
+            }
+            else{
+                return null;
+            }
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            loadData();
         }
 
         private void loadData() {
@@ -199,19 +212,43 @@ public class HomeActivity extends ActionBarActivity {
 
         @Override
         public void onDetach() {
+            super.onDetach();
             if (progressDialog!=null) {
                 progressDialog.dismiss();
                 progressDialog = null;
             }
-            super.onDetach();
+            VolleyQueue.getInstance(getActivity()).getRequestQueue().cancelAll(new RequestQueue.RequestFilter() {
+                @Override
+                public boolean apply(Request<?> request) {
+                    return true;
+                }
+            });
         }
     }
 
     public static class AboutFragment extends Fragment {
+        @InjectView(R.id.about_list) ListView listView;
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_about, container, false);
+            ButterKnife.inject(this, rootView);
+            populateInfo();
             return rootView;
+        }
+
+        public void populateInfo() {
+            AboutListAdapter mAdapter = new AboutListAdapter(getActivity());
+            listView.setAdapter(mAdapter);
+            mAdapter.addSeparatorItem("Axelia");
+            mAdapter.addItem("Version 1.0.4 (build 674)\n" +
+                    "Copyright(C) 2014 Axelia, Inc. All rights reserved");
+            mAdapter.addSeparatorItem("About the App");
+            mAdapter.addItem("Axelia is a well respected and trusted app that brings accurate real time traffic information and the details about the conditions of the roads and highways in your city and community. Our expert and well trained team of reporters combine decades of traffic reporting experience on many of the most influential Spanish radio stations in America.");
+            mAdapter.addSeparatorItem("Contact Us");
+            mAdapter.addItem("axeliatransito@gmail.com \n");
+            mAdapter.addHtmlItem("Twitter: <a href=\"https://twitter.com/AxeliaTransito\">@AxeliaTransito</a>");
+            mAdapter.addSeparatorItem("Advertise With Us");
+            mAdapter.addItem("Please contact us for information on advertising and promotional opportunities on this app.Email us at axeliatransito@gmail.com.");
         }
     }
 
