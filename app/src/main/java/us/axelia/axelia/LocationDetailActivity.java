@@ -124,6 +124,14 @@ public class LocationDetailActivity extends ActionBarActivity {
                 }
                 mMediaPlayerPaused = savedInstanceState.getBoolean("paused",false);
                 mCurrentPosition = savedInstanceState.getInt("currentPosition");
+                if (mMediaPlayer==null) {
+                    mMediaPlayer = new MediaPlayer();
+                    try {
+                        prepareMediaPlayer();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 attachMediaPlayerToListeners();
                 if (mMediaPlayerPaused) {
                     mPlayOrPauseButton.setText("Play");
@@ -265,11 +273,6 @@ public class LocationDetailActivity extends ActionBarActivity {
             outState.putBoolean("paused",mMediaPlayerPaused);
         }
 
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
-            destroyMediaPlayer();
-        }
 
         public void prepareMediaPlayer() throws IOException {
             if (BuildConfig.DEBUG) {
@@ -350,11 +353,12 @@ public class LocationDetailActivity extends ActionBarActivity {
         }
 
         public void pauseMediaPlayer() {
-            mMediaPlayer.pause();
-            mCurrentPosition = mMediaPlayer.getCurrentPosition();
-            mMediaPlayerPaused = true;
-            mPlayOrPauseButton.setText("Play");
-
+            if (mMediaPlayer != null) {
+                mMediaPlayer.pause();
+                mCurrentPosition = mMediaPlayer.getCurrentPosition();
+                mMediaPlayerPaused = true;
+                mPlayOrPauseButton.setText("Play");
+            }
         }
         public void playMediaPlayer() {
             mMediaPlayer.prepareAsync();
@@ -385,6 +389,8 @@ public class LocationDetailActivity extends ActionBarActivity {
             }
             mAlertMessageView.setText(message);
         }
+
+
 
         public void destroyMediaPlayer() {
             if (mMediaPlayer != null) {
