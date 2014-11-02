@@ -29,11 +29,11 @@ import java.util.List;
 /**
  * Created by mac on 1/11/14.
  */
-public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<File>>{
-    private static final String BASE_URL = "http://www.axelia.us/api/Audios";
+public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>{
+    private static final String BASE_URL = "http://192.168.1.5/axelia/api/Audios.php";
     private static final String LOG_TAG = AudiosDownloaderTask.class.getSimpleName();
     private static final String FILE_PREFIX = "Axelia_AUDIO";
-    private static final String FILE_EXTENSION = "mp3";
+    private static final String FILE_EXTENSION = ".mp3";
     private Context mContext;
     private List<AudioDownloadListener> mAudioDownloadListeners;
 
@@ -48,25 +48,24 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<File>>{
         mAudioDownloadListeners.remove(listener);
     }
     @Override
-    protected List<File> doInBackground(Integer... integers) {
-        List<File> mp3files = new ArrayList<File>();
+    protected List<Audio> doInBackground(Integer... integers) {
         String jsonResponse = downloadJsonList(integers[0]);
-        List<String> mp3List = parseMp3List(jsonResponse);
-        for (String mp3Url: mp3List) {
+        List<Audio> mp3List = parseMp3List(jsonResponse);
+        for (Audio audio: mp3List) {
             try {
-                mp3files.add(downloadMp3(mp3Url));
+                audio.setTemporaryFile(downloadMp3(audio.getUrl()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return mp3files;
+        return mp3List;
     }
 
     @Override
-    protected void onPostExecute(List<File> files) {
-        super.onPostExecute(files);
+    protected void onPostExecute(List<Audio> audios) {
+        super.onPostExecute(audios);
         for (AudioDownloadListener listener: mAudioDownloadListeners) {
-            listener.onAudioDownloadComplete(files);
+            listener.onAudioDownloadComplete(audios);
         }
     }
 
@@ -79,7 +78,7 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<File>>{
         uriBuilder.authority("www.axelia.us");
         uriBuilder.appendQueryParameter("locationId",String.valueOf(id));
         Uri uri = uriBuilder.build();
-        HttpGet httpGet = new HttpGet(uri.toString());
+        HttpGet httpGet = new HttpGet(BASE_URL);
         httpGet.addHeader("Content-type","application/json");
         StringBuilder builder = new StringBuilder();
         try {
@@ -109,11 +108,11 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<File>>{
         return builder.toString();
     }
 
-    public List<String> parseMp3List (String jsonResponse) {
-        List<String> mp3List = new ArrayList<String>();
+    public List<Audio> parseMp3List (String jsonResponse) {
+        List<Audio> mp3List = new ArrayList<Audio>();
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<String>>(){}.getType();
-        gson.fromJson(jsonResponse, listType);
+        Type listType = new TypeToken<List<Audio>>(){}.getType();
+        mp3List = gson.fromJson(jsonResponse, listType);
         return mp3List;
     }
 
@@ -153,6 +152,6 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<File>>{
     }
 
     public static interface AudioDownloadListener {
-        public void onAudioDownloadComplete(List<File> files);
+        public void onAudioDownloadComplete(List<Audio> audios);
     }
 }

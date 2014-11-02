@@ -128,7 +128,7 @@ public class HomeActivity extends ActionBarActivity {
      */
     public static class CitiesListFragment extends Fragment implements Response.ErrorListener, Response.Listener<JSONArray> {
         private static final String LOG_TAG = CitiesListFragment.class.getSimpleName();
-        private static final String LOCATION_URL = "http://www.axelia.us/api/Locations";
+        private static final String LOCATION_URL = "http://192.168.1.5/axelia/api/Locations.php";
         @InjectView(R.id.location_list) ListView locationListView;
         private ProgressDialog progressDialog;
         private List<Location> mLocations;
