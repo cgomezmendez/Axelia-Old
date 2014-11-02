@@ -124,14 +124,6 @@ public class LocationDetailActivity extends ActionBarActivity {
                 }
                 mMediaPlayerPaused = savedInstanceState.getBoolean("paused",false);
                 mCurrentPosition = savedInstanceState.getInt("currentPosition");
-                if (mMediaPlayer==null) {
-                    mMediaPlayer = new MediaPlayer();
-                    try {
-                        prepareMediaPlayer();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
                 attachMediaPlayerToListeners();
                 if (mMediaPlayerPaused) {
                     mPlayOrPauseButton.setText("Play");
@@ -250,7 +242,9 @@ public class LocationDetailActivity extends ActionBarActivity {
         @Override
         public void onPause() {
             super.onPause();
-            pauseMediaPlayer();
+            if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                pauseMediaPlayer();
+            }
         }
 
         @Override
