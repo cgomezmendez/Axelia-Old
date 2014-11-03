@@ -18,7 +18,7 @@
         android:background="#00D800"
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
-        <TextView
+        <us.axelia.axelia.TextViewPermanentMarquee
             android:id="@+id/alert_message_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

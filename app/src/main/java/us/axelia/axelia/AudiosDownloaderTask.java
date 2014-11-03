@@ -30,7 +30,7 @@ import java.util.List;
  * Created by mac on 1/11/14.
  */
 public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>{
-    private static final String BASE_URL = "http://192.168.1.5/axelia/api/Audios.php";
+    private static final String BASE_URL = "http://192.168.1.2/axelia/api/Audios.php";
     private static final String LOG_TAG = AudiosDownloaderTask.class.getSimpleName();
     private static final String FILE_PREFIX = "Axelia_AUDIO";
     private static final String FILE_EXTENSION = ".mp3";

@@ -1,22 +1,26 @@
 package us.axelia.axelia;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.os.Build;
+import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -27,7 +31,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
@@ -38,12 +41,19 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnItemClick;
-import butterknife.OnItemSelected;
 
 
 public class HomeActivity extends ActionBarActivity {
     private static final String LOG_TAG = HomeActivity.class.getSimpleName();
+
+    public boolean isConnectedToNetwork() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return networkInfo.isConnected();
+        }
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +128,7 @@ public class HomeActivity extends ActionBarActivity {
         int id = item.getItemId();
         if (id==R.id.action_refresh) {
             CitiesListFragment citiesListFragment = (CitiesListFragment) getSupportFragmentManager().findFragmentById(R.id.container);
-            citiesListFragment.loadData();
+            citiesListFragment.checkInternetConnection();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -128,7 +138,7 @@ public class HomeActivity extends ActionBarActivity {
      */
     public static class CitiesListFragment extends Fragment implements Response.ErrorListener, Response.Listener<JSONArray> {
         private static final String LOG_TAG = CitiesListFragment.class.getSimpleName();
-        private static final String LOCATION_URL = "http://192.168.1.5/axelia/api/Locations.php";
+        private static final String LOCATION_URL = "http://192.168.1.2/axelia/api/Locations.php";
         @InjectView(R.id.location_list) ListView locationListView;
         private ProgressDialog progressDialog;
         private List<Location> mLocations;
@@ -141,7 +151,48 @@ public class HomeActivity extends ActionBarActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setHasOptionsMenu(true);
-            loadData();
+            checkInternetConnection();
+        }
+
+        public void displayNoInternetDialog () {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("No hay conexión a internet");
+            builder.setMessage("Para poder usar esta aplicación, " +
+                    "debe tener conexión a internet");
+            builder.setIcon(R.drawable.ic_launcher);
+            builder.setCancelable(false);
+            builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                    getActivity().finish();
+                }
+            });
+            AlertDialog dialog = builder.show();
+        }
+
+        public void checkInternetConnection () {
+            if (BuildConfig.DEBUG) {
+                Log.d(LOG_TAG, "checking internet connection");
+            }
+            Handler handler = new Handler(){
+                @Override
+                public void handleMessage(Message msg) {
+                    super.handleMessage(msg);
+                    if (getActivity() != null) {
+                        if (msg.what == InternetCheckThread.IS_INTERNET_CONNECTION) {
+                            loadData();
+                        } else {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(LOG_TAG, "No hay conexion a internet");
+                            }
+                            displayNoInternetDialog();
+                        }
+                    }
+                }
+            };
+            Thread internetCheckThread = new Thread(new InternetCheckThread(handler));
+            internetCheckThread.start();
         }
 
         @Override
@@ -206,16 +257,17 @@ public class HomeActivity extends ActionBarActivity {
         @Override
         public void onResume() {
             super.onResume();
-            loadData();
         }
 
         private void loadData() {
-            if (progressDialog==null) {
-                progressDialog = ProgressDialog.show(this.getActivity(), null, "Loading.... Please Wait...");
+            if (getActivity() != null) {
+                if (progressDialog == null) {
+                    progressDialog = ProgressDialog.show(getActivity(), null, "Loading.... Please Wait...");
+                }
+                VolleyQueue queue = VolleyQueue.getInstance(getActivity().getApplicationContext());
+                JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(LOCATION_URL, this, this);
+                queue.getRequestQueue().add(jsonArrayRequest);
             }
-            VolleyQueue queue = VolleyQueue.getInstance(getActivity().getApplicationContext());
-            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(LOCATION_URL, this, this);
-            queue.getRequestQueue().add(jsonArrayRequest);
         }
 
         @Override

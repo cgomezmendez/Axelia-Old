@@ -1,9 +1,13 @@
 package us.axelia.axelia;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -17,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.File;
@@ -25,6 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -69,7 +77,7 @@ public class LocationDetailActivity extends ActionBarActivity {
         int id = item.getItemId();
         if (id==R.id.action_refresh) {
             LocationDetailFragment citiesListFragment = (LocationDetailFragment) getSupportFragmentManager().findFragmentById(R.id.container);
-            citiesListFragment.loadData();
+            citiesListFragment.checkInternetConnection();
             citiesListFragment.destroyMediaPlayer();
         }
         return super.onOptionsItemSelected(item);
@@ -99,6 +107,14 @@ public class LocationDetailActivity extends ActionBarActivity {
         TextView cityNameView;
         @InjectView(R.id.description_view)
         TextView mDescriptionView;
+        @InjectView(R.id.audio_seek_bar)
+        SeekBar mSeekBar;
+        @InjectView(R.id.current_time)
+        TextView currentTime;
+        @InjectView(R.id.duration_time)
+        TextView durationTime;
+        Timer timer = new Timer();
+
 
         public LocationDetailFragment() {
         }
@@ -111,8 +127,61 @@ public class LocationDetailActivity extends ActionBarActivity {
             LocationDetailActivity locationDetailActivity =  (LocationDetailActivity) getActivity();
             String cityName = locationDetailActivity.mCurrentLocation.getName();
             cityNameView.setText(cityName);
+            mSeekBar.setProgress(0);
+            mSeekBar.setMax(100);
+            durationTime.setText("");
+            currentTime.setText("");
             setMessage();
+            mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                        if (!mAudios.isEmpty()) {
+                            Audio currentAudio = mAudios.get(mCurrentAudio);
+                            if (fromUser && currentAudio.getAudioType() != AudioType.COMMERCIAL) {
+                                mMediaPlayer.seekTo(progress);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
             return rootView;
+        }
+
+        public void setupSeekBar(View view, final int amongToUpdate,final int duration) {
+            long period = duration;
+            mSeekBar.setMax(duration);
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    if (mMediaPlayer != null) {
+                        if (!mMediaPlayerPaused && mMediaPlayer.isPlaying()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    int p = mMediaPlayer.getCurrentPosition();
+                                    mSeekBar.setProgress(p);
+                                    currentTime.setText(getTimeText(mMediaPlayer.getCurrentPosition()));
+                                }
+                            });
+                        }
+                    }
+                }
+            };
+            timer.schedule(timerTask, 0, 1000);
+            if (BuildConfig.DEBUG) {
+                Log.d(LOG_TAG, "update among: "+amongToUpdate);
+            }
         }
 
         @Override
@@ -143,15 +212,18 @@ public class LocationDetailActivity extends ActionBarActivity {
         }
 
         public void loadData() {
-            if (downloaderTask==null) {
-                if (progressDialog == null) {
-                    progressDialog = ProgressDialog.show(getActivity(),null, "Loading.... Please Wait...");
+            mCurrentAudio = 0;
+            if (getActivity() != null) {
+                if (downloaderTask == null) {
+                    if (progressDialog == null) {
+                        progressDialog = ProgressDialog.show(getActivity(), null, "Loading.... Please Wait...");
+                    }
+                    downloaderTask = new AudiosDownloaderTask(getActivity());
+                    downloaderTask.addAudioDownloadListener(this);
+                    LocationDetailActivity activity = (LocationDetailActivity) getActivity();
+                    downloaderTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                            activity.mCurrentLocation.getId());
                 }
-                downloaderTask = new AudiosDownloaderTask(getActivity());
-                downloaderTask.addAudioDownloadListener(this);
-                LocationDetailActivity activity = (LocationDetailActivity) getActivity();
-                downloaderTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-                        activity.mCurrentLocation.getId());
             }
         }
 
@@ -253,12 +325,17 @@ public class LocationDetailActivity extends ActionBarActivity {
             if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 pauseMediaPlayer();
             }
+            mPlayOrPauseButton.setText("Play");
+            mDescriptionView.setText("");
+            mSeekBar.setProgress(0);
+            mSeekBar.setMax(100);
+            currentTime.setText("");
+            durationTime.setText("");
         }
 
         @Override
         public void onStop() {
             super.onStop();
-            destroyMediaPlayer();
         }
 
         @Override
@@ -302,6 +379,10 @@ public class LocationDetailActivity extends ActionBarActivity {
                 @Override
                 public void onCompletion(MediaPlayer mediaPlayer) {
                     mDescriptionView.setText("");
+                    durationTime.setText("");
+                    currentTime.setText("");
+                    mSeekBar.setProgress(0);
+                    mSeekBar.setMax(100);
                     nextAudio();
                     try {
                         mMediaPlayerPaused = false;
@@ -321,7 +402,11 @@ public class LocationDetailActivity extends ActionBarActivity {
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
+                    durationTime.setText(getTimeText(mMediaPlayer.getDuration()));
                     mediaPlayer.start();
+                    int duration = mMediaPlayer.getDuration();
+                    int amongToUpdate = duration / 100;
+                    setupSeekBar(getView(), amongToUpdate, duration);
                     mDescriptionView.setText(mAudios.get(mCurrentAudio).getDescription());
                 }
             });
@@ -338,6 +423,9 @@ public class LocationDetailActivity extends ActionBarActivity {
 
         @OnClick(R.id.play_or_pause_view)
         public void playOrPause () {
+            mAlertMessageView.setSelected(true);
+            mAlertMessageView.setEnabled(true);
+            mAlertMessageView.setFocusable(true);
             if (!mAudios.isEmpty()) {
                 if (mMediaPlayer != null) {
                     if (mMediaPlayer.isPlaying()) {
@@ -404,11 +492,83 @@ public class LocationDetailActivity extends ActionBarActivity {
             if (mMediaPlayer != null) {
                 mMediaPlayer.release();
                 mMediaPlayer = null;
-                mMediaPlayerPaused = false;
-                mPlayOrPauseButton.setText("Play");
-                mDescriptionView.setText("");
+
             }
         }
 
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            ButterKnife.reset(this);
+            timer.cancel();
+            destroyMediaPlayer();
+        }
+        public void checkInternetConnection () {
+            if (BuildConfig.DEBUG) {
+                Log.d(LOG_TAG, "checking internet connection");
+            }
+            Handler handler = new Handler(){
+                @Override
+                public void handleMessage(Message msg) {
+                    super.handleMessage(msg);
+                    if (getActivity() != null) {
+                        if (msg.what == InternetCheckThread.IS_INTERNET_CONNECTION) {
+                            loadData();
+                        } else {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(LOG_TAG, "No hay conexion a internet");
+                            }
+                            displayNoInternetDialog();
+                        }
+                    }
+                }
+            };
+            Thread internetCheckThread = new Thread(new InternetCheckThread(handler));
+            internetCheckThread.start();
+        }
+        public void displayNoInternetDialog () {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("No hay conexión a internet");
+            builder.setMessage("Para poder usar esta aplicación, " +
+                    "debe tener conexión a internet");
+            builder.setIcon(R.drawable.ic_launcher);
+            builder.setCancelable(false);
+            builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                    getActivity().finish();
+                }
+            });
+            AlertDialog dialog = builder.show();
+        }
+        
+        private String getTimeText (int time) {
+            String timeString = String.format("%d:%d",
+                    TimeUnit.MILLISECONDS.toMinutes(time),
+                    TimeUnit.MILLISECONDS.toSeconds(time) -
+                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time)
+                            ));
+            if (TimeUnit.MILLISECONDS.toSeconds(time) < 10 && TimeUnit.MILLISECONDS.toMinutes(time) < 10) {
+                timeString = String.format("0%d:0%d",
+                        TimeUnit.MILLISECONDS.toMinutes(time),
+                        TimeUnit.MILLISECONDS.toSeconds(time) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time)
+                                ));
+            } else if (TimeUnit.MILLISECONDS.toSeconds(time) < 10) {
+                timeString = String.format("%d:0%d",
+                        TimeUnit.MILLISECONDS.toMinutes(time),
+                        TimeUnit.MILLISECONDS.toSeconds(time) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time)
+                                ));
+            } else if (TimeUnit.MILLISECONDS.toMinutes(time) < 10) {
+                timeString = String.format("0%d:%d",
+                        TimeUnit.MILLISECONDS.toMinutes(time),
+                        TimeUnit.MILLISECONDS.toSeconds(time) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time)
+                                ));
+            }
+            return timeString;
+        }
     }
 }

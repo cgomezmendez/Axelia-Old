@@ -38,4 +38,5 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.commonsware.cwac:merge:1.0.2'
     compile 'com.google.apis:google-api-services-analytics:v3-rev103-1.19.0'
+    compile 'joda-time:joda-time:2.5'
 }
