@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.model;
 
 import com.google.gson.annotations.SerializedName;
 

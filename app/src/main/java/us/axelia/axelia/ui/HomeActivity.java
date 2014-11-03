@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.ui;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -47,6 +47,12 @@ import java.util.Random;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import us.axelia.axelia.Axelia;
+import us.axelia.axelia.BuildConfig;
+import us.axelia.axelia.util.InternetCheckThread;
+import us.axelia.axelia.model.Location;
+import us.axelia.axelia.R;
+import us.axelia.axelia.util.VolleyQueue;
 
 
 public class HomeActivity extends ActionBarActivity {
@@ -363,7 +369,7 @@ public class HomeActivity extends ActionBarActivity {
             AboutListAdapter mAdapter = new AboutListAdapter(getActivity());
             listView.setAdapter(mAdapter);
             mAdapter.addSeparatorItem("Axelia");
-            mAdapter.addItem("Version 1.0.4 (build 674)\n" +
+            mAdapter.addItem("Version 1.0.5 (build 674)\n" +
                     "Copyright(C) 2014 Axelia, Inc. All rights reserved");
             mAdapter.addSeparatorItem("About the App");
             mAdapter.addItem("Axelia is a well respected and trusted app that brings accurate real time traffic information and the details about the conditions of the roads and highways in your city and community. Our expert and well trained team of reporters combine decades of traffic reporting experience on many of the most influential Spanish radio stations in America.");

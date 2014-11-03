@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.ui;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -44,6 +44,14 @@ import java.util.concurrent.TimeUnit;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import us.axelia.axelia.model.Audio;
+import us.axelia.axelia.model.AudioType;
+import us.axelia.axelia.util.AudiosDownloaderTask;
+import us.axelia.axelia.Axelia;
+import us.axelia.axelia.BuildConfig;
+import us.axelia.axelia.util.InternetCheckThread;
+import us.axelia.axelia.model.Location;
+import us.axelia.axelia.R;
 
 
 public class LocationDetailActivity extends ActionBarActivity {

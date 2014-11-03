@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.util;
 
 import android.content.Context;
 

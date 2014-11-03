@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.util;
 
 import android.content.Context;
 import android.net.Uri;
@@ -25,6 +25,9 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+
+import us.axelia.axelia.BuildConfig;
+import us.axelia.axelia.model.Audio;
 
 /**
  * Created by mac on 1/11/14.

@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.model;
 
 /**
  * Created by mac on 2/11/14.

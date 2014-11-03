@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.ui;
 
 import android.content.Context;
 import android.text.Html;
@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.TreeSet;
+
+import us.axelia.axelia.R;
 
 /**
  * Created by Cristian on 10/3/2014.

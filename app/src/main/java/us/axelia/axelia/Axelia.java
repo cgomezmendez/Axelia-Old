@@ -31,7 +31,7 @@ public class Axelia extends Application {
         mContext = getApplicationContext();
     }
 
-    synchronized Tracker getTracker() {
+    public synchronized Tracker getTracker() {
         GoogleAnalytics analytics = GoogleAnalytics.getInstance(mContext);
         analytics.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
         Tracker t = analytics.newTracker(R.xml.global_tracker);

@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.ui;
 
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -9,6 +9,8 @@ import java.util.TimerTask;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import us.axelia.axelia.BuildConfig;
+import us.axelia.axelia.R;
 
 /**
  * Created by mac on 3/11/14.

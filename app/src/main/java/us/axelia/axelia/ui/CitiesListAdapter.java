@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.ui;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -12,6 +12,10 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import us.axelia.axelia.BuildConfig;
+import us.axelia.axelia.R;
+import us.axelia.axelia.model.Location;
 
 /**
  * Created by mac on 1/11/14.

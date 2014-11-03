@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:mContext="us.axelia.axelia.HomeActivity.CitiesListFragment">
+    tools:mContext="us.axelia.axelia.ui.HomeActivity.CitiesListFragment">
     <LinearLayout android:id="@+id/adView"
         android:orientation="horizontal"
         android:layout_width="match_parent"

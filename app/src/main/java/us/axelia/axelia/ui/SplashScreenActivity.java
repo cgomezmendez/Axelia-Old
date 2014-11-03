@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.ui;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import us.axelia.axelia.R;
+import us.axelia.axelia.util.VolleyQueue;
 
 
 public class SplashScreenActivity extends Activity {

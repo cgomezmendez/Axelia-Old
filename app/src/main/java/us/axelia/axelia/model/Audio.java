@@ -1,8 +1,10 @@
-package us.axelia.axelia;
+package us.axelia.axelia.model;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
+
+import us.axelia.axelia.model.AudioType;
 
 /**
  * Created by mac on 2/11/14.

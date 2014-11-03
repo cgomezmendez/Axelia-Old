@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:paddingBottom="10dp"
     android:keepScreenOn="true"
-    tools:context="us.axelia.axelia.LocationDetailActivity.LocationDetailFragment">
+    tools:context="us.axelia.axelia.ui.LocationDetailActivity.LocationDetailFragment">
     <LinearLayout android:id="@+id/adView"
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
         android:background="#00D800"
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
-        <us.axelia.axelia.TextViewPermanentMarquee
+        <TextView
             android:id="@+id/alert_message_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

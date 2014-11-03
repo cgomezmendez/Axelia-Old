@@ -1,4 +1,4 @@
-package us.axelia.axelia;
+package us.axelia.axelia.util;
 
 import android.os.Handler;
 import android.util.Log;
@@ -14,6 +14,8 @@ import org.apache.http.params.HttpParams;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import us.axelia.axelia.BuildConfig;
 
 /**
  * Created by mac on 3/11/14.
