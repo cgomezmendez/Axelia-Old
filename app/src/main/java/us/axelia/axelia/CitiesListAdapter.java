@@ -17,9 +17,9 @@ import java.util.List;
  * Created by mac on 1/11/14.
  */
 public class CitiesListAdapter extends BaseAdapter implements ListAdapter {
+    private static final String LOG_TAG = CitiesListAdapter.class.getSimpleName();
     private List<Location> mLocations;
     private Activity mContext;
-    private static final String LOG_TAG = CitiesListAdapter.class.getSimpleName();
 
     public CitiesListAdapter(List<Location> locations, Activity context) {
         this.mLocations = locations;
@@ -50,7 +50,7 @@ public class CitiesListAdapter extends BaseAdapter implements ListAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View rowView = convertView;
-        if (rowView==null) {
+        if (rowView == null) {
             LayoutInflater inflater = mContext.getLayoutInflater();
             rowView = inflater.inflate(R.layout.location_row, null);
             ViewHolder viewHolder = new ViewHolder();
@@ -61,7 +61,7 @@ public class CitiesListAdapter extends BaseAdapter implements ListAdapter {
         final String locationName = mLocations.get(position).getName();
         holder.cityName.setText(locationName);
         rowView.setClickable(true);
-        rowView.setTag(R.id.list_item,mLocations.get(position));
+        rowView.setTag(R.id.list_item, mLocations.get(position));
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

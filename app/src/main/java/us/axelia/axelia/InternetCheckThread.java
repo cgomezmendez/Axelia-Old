@@ -19,14 +19,14 @@ import java.io.InputStream;
  * Created by mac on 3/11/14.
  */
 public class InternetCheckThread implements Runnable {
-    private static final String URL_TO_PING = "http://m.google.com";
-    private boolean isConnectedToInternet;
-    private Handler mHandler;
     public static final int IS_NOT_INTERNET_CONNECTION = 0;
     public static final int IS_INTERNET_CONNECTION = 1;
+    private static final String URL_TO_PING = "http://m.google.com";
     private static final String LOG_TAG = InternetCheckThread.class.getSimpleName();
+    private boolean isConnectedToInternet;
+    private Handler mHandler;
 
-    public InternetCheckThread (Handler handler) {
+    public InternetCheckThread(Handler handler) {
         mHandler = handler;
     }
 
@@ -46,8 +46,7 @@ public class InternetCheckThread implements Runnable {
             int statusCode = statusLine.getStatusCode();
             if (statusCode == 200) {
                 isConnectedToInternet = true;
-            }
-            else {
+            } else {
 
             }
             InputStream responseStream = response.getEntity().getContent();
@@ -60,8 +59,7 @@ public class InternetCheckThread implements Runnable {
                 Log.d(LOG_TAG, "hay conexion a internet");
             }
             mHandler.sendEmptyMessage(IS_INTERNET_CONNECTION);
-        }
-        else {
+        } else {
             if (BuildConfig.DEBUG) {
                 Log.d(LOG_TAG, "no hay conexion a internet");
             }

@@ -12,6 +12,10 @@ public class Audio {
     private String url;
     @SerializedName("Description")
     private String description;
+    @SerializedName("AudioType")
+    private int audioTypeInt;
+    private Enum audioType;
+    private File temporaryFile;
 
     public int getAudioTypeInt() {
         return audioTypeInt;
@@ -20,11 +24,6 @@ public class Audio {
     public void setAudioTypeInt(int audioTypeInt) {
         this.audioTypeInt = audioTypeInt;
     }
-
-    @SerializedName("AudioType")
-    private int audioTypeInt;
-    private Enum audioType;
-    private File temporaryFile;
 
     public File getTemporaryFile() {
         return temporaryFile;
@@ -51,7 +50,7 @@ public class Audio {
     }
 
     public Enum getAudioType() {
-        if (audioType == null){
+        if (audioType == null) {
             audioType = AudioType.fromKey(audioTypeInt);
         }
         return audioType;

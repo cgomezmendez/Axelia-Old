@@ -1,16 +1,12 @@
 package us.axelia.axelia;
 
-import android.app.ActionBar;
 import android.content.Context;
-import android.content.Intent;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -50,7 +46,7 @@ public class AboutListAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public void addHtmlItem (final String item) {
+    public void addHtmlItem(final String item) {
         mData.add(item);
         mHtmlsSet.add(mData.size() - 1);
         notifyDataSetChanged();
@@ -61,11 +57,9 @@ public class AboutListAdapter extends BaseAdapter {
     public int getItemViewType(int position) {
         if (mSeparatorsSet.contains(position)) {
             return TYPE_SEPARATOR;
-        }
-        else if (mHtmlsSet.contains(position)) {
+        } else if (mHtmlsSet.contains(position)) {
             return TYPE_HTML;
-        }
-        else {
+        } else {
             return TYPE_ITEM;
         }
     }
@@ -100,7 +94,7 @@ public class AboutListAdapter extends BaseAdapter {
             switch (type) {
                 case TYPE_ITEM:
                     convertView = mInflater.inflate(R.layout.about_list_row, null);
-                    holder.textView = (TextView)convertView.findViewById(R.id.text_about_row);
+                    holder.textView = (TextView) convertView.findViewById(R.id.text_about_row);
                     holder.textView.setText(text);
                     if (text.contains("axeliatransito@gmail.com")) {
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -110,12 +104,12 @@ public class AboutListAdapter extends BaseAdapter {
                     break;
                 case TYPE_SEPARATOR:
                     convertView = mInflater.inflate(R.layout.title_about_section, null);
-                    holder.textView = (TextView)convertView.findViewById(R.id.title_about);
+                    holder.textView = (TextView) convertView.findViewById(R.id.title_about);
                     holder.textView.setText(text);
                     break;
                 case TYPE_HTML:
                     convertView = mInflater.inflate(R.layout.title_about_section, null);
-                    holder.textView = (TextView)convertView.findViewById(R.id.title_about);
+                    holder.textView = (TextView) convertView.findViewById(R.id.title_about);
                     holder.textView.setText(Html.fromHtml(text));
                     holder.textView.setClickable(true);
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -126,7 +120,7 @@ public class AboutListAdapter extends BaseAdapter {
             }
             convertView.setTag(holder);
         } else {
-            holder = (ViewHolder)convertView.getTag();
+            holder = (ViewHolder) convertView.getTag();
         }
         return convertView;
     }

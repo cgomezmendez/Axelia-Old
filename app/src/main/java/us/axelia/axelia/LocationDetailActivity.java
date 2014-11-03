@@ -6,11 +6,11 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
-import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -20,9 +20,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -75,7 +82,7 @@ public class LocationDetailActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id==R.id.action_refresh) {
+        if (id == R.id.action_refresh) {
             LocationDetailFragment citiesListFragment = (LocationDetailFragment) getSupportFragmentManager().findFragmentById(R.id.container);
             citiesListFragment.checkInternetConnection();
             citiesListFragment.destroyMediaPlayer();
@@ -88,19 +95,15 @@ public class LocationDetailActivity extends ActionBarActivity {
      */
     public static class LocationDetailFragment extends Fragment implements AudiosDownloaderTask.AudioDownloadListener {
         private static final String LOG_TAG = LocationDetailFragment.class.getSimpleName();
+        private static final String FILE_PREFIX = "AXELIA_AUDIO";
+        private static final String FILE_EXTENSION = ".mp3";
         private static AudiosDownloaderTask downloaderTask;
-        private ProgressDialog progressDialog;
         private static MediaPlayer mMediaPlayer;
         private static List<Audio> mAudios;
         @InjectView(R.id.alert_message_view)
         TextView mAlertMessageView;
         @InjectView(R.id.alert_message_view_container)
         RelativeLayout mAlertMessageViewcContainer;
-        private static final String FILE_PREFIX = "AXELIA_AUDIO";
-        private static final String FILE_EXTENSION = ".mp3";
-        private int mCurrentAudio = 0;
-        private boolean mMediaPlayerPaused;
-        private int mCurrentPosition = 0;
         @InjectView(R.id.play_or_pause_view)
         Button mPlayOrPauseButton;
         @InjectView(R.id.city_name)
@@ -114,6 +117,11 @@ public class LocationDetailActivity extends ActionBarActivity {
         @InjectView(R.id.duration_time)
         TextView durationTime;
         Timer timer = new Timer();
+        private ProgressDialog progressDialog;
+        private int mCurrentAudio = 0;
+        private boolean mMediaPlayerPaused;
+        private int mCurrentPosition = 0;
+        private AdView mAdView;
 
 
         public LocationDetailFragment() {
@@ -121,10 +129,10 @@ public class LocationDetailActivity extends ActionBarActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_location_detail, container, false);
             ButterKnife.inject(this, rootView);
-            LocationDetailActivity locationDetailActivity =  (LocationDetailActivity) getActivity();
+            LocationDetailActivity locationDetailActivity = (LocationDetailActivity) getActivity();
             String cityName = locationDetailActivity.mCurrentLocation.getName();
             cityNameView.setText(cityName);
             mSeekBar.setProgress(0);
@@ -155,10 +163,22 @@ public class LocationDetailActivity extends ActionBarActivity {
 
                 }
             });
+            loadAd(rootView);
+            track();
             return rootView;
         }
 
-        public void setupSeekBar(View view, final int amongToUpdate,final int duration) {
+        public void track() {
+            Axelia axelia = Axelia.getInstance();
+            Tracker tracker = axelia.getTracker();
+            LocationDetailActivity activity = (LocationDetailActivity) getActivity();
+            String screenName = String.format("Audio Screen: %s",
+                    activity.mCurrentLocation.getName());
+            tracker.setScreenName(screenName);
+            tracker.send(new HitBuilders.AppViewBuilder().build());
+        }
+
+        public void setupSeekBar(View view, final int amongToUpdate, final int duration) {
             long period = duration;
             mSeekBar.setMax(duration);
             TimerTask timerTask = new TimerTask() {
@@ -180,7 +200,7 @@ public class LocationDetailActivity extends ActionBarActivity {
             };
             timer.schedule(timerTask, 0, 1000);
             if (BuildConfig.DEBUG) {
-                Log.d(LOG_TAG, "update among: "+amongToUpdate);
+                Log.d(LOG_TAG, "update among: " + amongToUpdate);
             }
         }
 
@@ -191,9 +211,9 @@ public class LocationDetailActivity extends ActionBarActivity {
                 if (downloaderTask != null) {
                     downloaderTask.addAudioDownloadListener(this);
                 }
-                mMediaPlayerPaused = savedInstanceState.getBoolean("paused",false);
+                mMediaPlayerPaused = savedInstanceState.getBoolean("paused", false);
                 mCurrentPosition = savedInstanceState.getInt("currentPosition");
-                if (mMediaPlayer==null) {
+                if (mMediaPlayer == null) {
                     mMediaPlayer = new MediaPlayer();
                     try {
                         prepareMediaPlayer();
@@ -205,8 +225,7 @@ public class LocationDetailActivity extends ActionBarActivity {
                 if (mMediaPlayerPaused) {
                     mPlayOrPauseButton.setText("Play");
                 }
-            }
-            else{
+            } else {
                 loadData();
             }
         }
@@ -255,7 +274,7 @@ public class LocationDetailActivity extends ActionBarActivity {
             }
         }
 
-        public File getAudio () throws IOException {
+        public File getAudio() throws IOException {
             File file = null;
             if (mAudios.isEmpty()) {
                 LocationDetailActivity locationDetailActivity = (LocationDetailActivity) getActivity();
@@ -354,15 +373,15 @@ public class LocationDetailActivity extends ActionBarActivity {
         @Override
         public void onSaveInstanceState(Bundle outState) {
             super.onSaveInstanceState(outState);
-            outState.putInt("currentPosition",mCurrentPosition);
-            outState.putBoolean("paused",mMediaPlayerPaused);
+            outState.putInt("currentPosition", mCurrentPosition);
+            outState.putBoolean("paused", mMediaPlayerPaused);
         }
 
 
         public void prepareMediaPlayer() throws IOException {
             if (BuildConfig.DEBUG) {
                 Log.d(LOG_TAG, String.valueOf(mAudios.size()));
-                if (mAudios.size()-1>0) {
+                if (mAudios.size() - 1 > 0) {
                     Log.d(LOG_TAG, mAudios.get(0).getTemporaryFile().getAbsolutePath());
                 }
             }
@@ -388,10 +407,9 @@ public class LocationDetailActivity extends ActionBarActivity {
                         mMediaPlayerPaused = false;
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(mAudios.get(mCurrentAudio).getTemporaryFile().getAbsolutePath());
-                        if (mCurrentAudio!=0) {
+                        if (mCurrentAudio != 0) {
                             mediaPlayer.prepareAsync();
-                        }
-                        else{
+                        } else {
                             mPlayOrPauseButton.setText("Play");
                         }
                     } catch (IOException e) {
@@ -412,17 +430,37 @@ public class LocationDetailActivity extends ActionBarActivity {
             });
         }
 
-        public void nextAudio () {
-            if (mCurrentAudio < mAudios.size()-1) {
+        public void nextAudio() {
+            if (mCurrentAudio < mAudios.size() - 1) {
                 mCurrentAudio += 1;
-            }
-            else {
+            } else {
                 mCurrentAudio = 0;
             }
         }
 
+        public void trackPausa() {
+            Axelia axelia = Axelia.getInstance();
+            Tracker tracker = axelia.getTracker();
+            tracker.send(new HitBuilders.EventBuilder()
+                    .setCategory("UI")
+                    .setAction("buttonPress")
+                    .setLabel("Pausa")
+                    .build());
+        }
+
+        public void trackPlay() {
+            Axelia axelia = Axelia.getInstance();
+            Tracker tracker = axelia.getTracker();
+            tracker.send(new HitBuilders.EventBuilder()
+                    .setCategory("UI")
+                    .setAction("buttonPress")
+                    .setLabel("Play")
+                    .build());
+        }
+
         @OnClick(R.id.play_or_pause_view)
-        public void playOrPause () {
+        public void playOrPause() {
+
             mAlertMessageView.setSelected(true);
             mAlertMessageView.setEnabled(true);
             mAlertMessageView.setFocusable(true);
@@ -430,11 +468,14 @@ public class LocationDetailActivity extends ActionBarActivity {
                 if (mMediaPlayer != null) {
                     if (mMediaPlayer.isPlaying()) {
                         pauseMediaPlayer();
+                        trackPausa();
                     } else if (mMediaPlayerPaused) {
                         resumeMediaPlayer();
+                        trackPlay();
                     } else {
                         mPlayOrPauseButton.setText("Pausa");
                         mMediaPlayer.prepareAsync();
+                        trackPlay();
                     }
                 }
             }
@@ -456,36 +497,34 @@ public class LocationDetailActivity extends ActionBarActivity {
                 mPlayOrPauseButton.setText("Play");
             }
         }
+
         public void playMediaPlayer() {
             mMediaPlayer.prepareAsync();
             mPlayOrPauseButton.setText("Pause");
         }
 
-        public void setMessage () {
+        public void setMessage() {
             LocationDetailActivity activity = (LocationDetailActivity) getActivity();
             Location currentLocation = activity.mCurrentLocation;
             String message = currentLocation.getAlertMessage();
-            if (!message.equals("No Hay Alertas") &&  !message.equals("Próximamente")) {
-                mAlertMessageViewcContainer.setBackgroundColor(Color.rgb(235,0,0));
+            if (!message.equals("No Hay Alertas") && !message.equals("Próximamente")) {
+                mAlertMessageViewcContainer.setBackgroundColor(Color.rgb(235, 0, 0));
                 mAlertMessageView.setSingleLine(true);
                 mAlertMessageView.setEllipsize(TextUtils.TruncateAt.MARQUEE);
                 mAlertMessageView.setMarqueeRepeatLimit(-1);
                 mAlertMessageView.setHorizontallyScrolling(true);
                 mAlertMessageView.setFocusable(true);
                 mAlertMessageView.setFocusableInTouchMode(true);
-            }
-            else{
+            } else {
                 mAlertMessageView.setGravity(Gravity.CENTER);
                 if (message.equalsIgnoreCase("Próximamente")) {
-                    mAlertMessageViewcContainer.setBackgroundColor(Color.rgb(235,222,0));
-                }
-                else if (message.equalsIgnoreCase("No Hay Alertas")) {
-                    mAlertMessageViewcContainer.setBackgroundColor(Color.rgb(0,214, 33));
+                    mAlertMessageViewcContainer.setBackgroundColor(Color.rgb(235, 222, 0));
+                } else if (message.equalsIgnoreCase("No Hay Alertas")) {
+                    mAlertMessageViewcContainer.setBackgroundColor(Color.rgb(0, 214, 33));
                 }
             }
             mAlertMessageView.setText(message);
         }
-
 
 
         public void destroyMediaPlayer() {
@@ -503,11 +542,12 @@ public class LocationDetailActivity extends ActionBarActivity {
             timer.cancel();
             destroyMediaPlayer();
         }
-        public void checkInternetConnection () {
+
+        public void checkInternetConnection() {
             if (BuildConfig.DEBUG) {
                 Log.d(LOG_TAG, "checking internet connection");
             }
-            Handler handler = new Handler(){
+            Handler handler = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
                     super.handleMessage(msg);
@@ -526,7 +566,8 @@ public class LocationDetailActivity extends ActionBarActivity {
             Thread internetCheckThread = new Thread(new InternetCheckThread(handler));
             internetCheckThread.start();
         }
-        public void displayNoInternetDialog () {
+
+        public void displayNoInternetDialog() {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("No hay conexión a internet");
             builder.setMessage("Para poder usar esta aplicación, " +
@@ -542,8 +583,8 @@ public class LocationDetailActivity extends ActionBarActivity {
             });
             AlertDialog dialog = builder.show();
         }
-        
-        private String getTimeText (int time) {
+
+        private String getTimeText(int time) {
             String timeString = String.format("%d:%d",
                     TimeUnit.MILLISECONDS.toMinutes(time),
                     TimeUnit.MILLISECONDS.toSeconds(time) -
@@ -569,6 +610,31 @@ public class LocationDetailActivity extends ActionBarActivity {
                                 ));
             }
             return timeString;
+        }
+
+        public void loadAd(View view) {
+            LinearLayout placeholder = (LinearLayout) view.findViewById(R.id.adView);
+            mAdView = new AdView(getActivity());
+            mAdView.setAdSize(AdSize.SMART_BANNER);
+            Random random = new Random();
+            int randomInt = random.nextInt(101);
+            String adCode = "";
+            if (randomInt <= 30) {
+                adCode = "ca-app-pub-7038667452523799/7558607661";
+            } else {
+                adCode = "ca-app-pub-7038667452523799/7558607661";
+            }
+            mAdView.setAdUnitId(adCode);
+            placeholder.addView(mAdView);
+            AdRequest adRequest = new AdRequest.Builder()
+                    .build();
+            mAdView.loadAd(adRequest);
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            mAdView.destroy();
         }
     }
 }

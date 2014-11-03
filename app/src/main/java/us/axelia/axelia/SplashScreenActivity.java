@@ -2,13 +2,10 @@ package us.axelia.axelia;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
-import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 
 
 public class SplashScreenActivity extends Activity {
@@ -26,7 +23,7 @@ public class SplashScreenActivity extends Activity {
                 startActivity(i);
                 finish();
             }
-        },SPLASH_TIME_OUT);
+        }, SPLASH_TIME_OUT);
     }
 
 

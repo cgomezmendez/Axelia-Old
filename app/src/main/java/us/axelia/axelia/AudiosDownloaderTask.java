@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Created by mac on 1/11/14.
  */
-public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>{
+public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>> {
     private static final String BASE_URL = "http://192.168.1.2/axelia/api/Audios.php";
     private static final String LOG_TAG = AudiosDownloaderTask.class.getSimpleName();
     private static final String FILE_PREFIX = "Axelia_AUDIO";
@@ -41,17 +41,20 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>
         mContext = context;
         mAudioDownloadListeners = new ArrayList<AudioDownloadListener>();
     }
+
     public void addAudioDownloadListener(AudioDownloadListener listener) {
         mAudioDownloadListeners.add(listener);
     }
+
     public void removeAudioDownloadListener(AudioDownloadListener listener) {
         mAudioDownloadListeners.remove(listener);
     }
+
     @Override
     protected List<Audio> doInBackground(Integer... integers) {
         String jsonResponse = downloadJsonList(integers[0]);
         List<Audio> mp3List = parseMp3List(jsonResponse);
-        for (Audio audio: mp3List) {
+        for (Audio audio : mp3List) {
             try {
                 audio.setTemporaryFile(downloadMp3(audio.getUrl()));
             } catch (IOException e) {
@@ -64,7 +67,7 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>
     @Override
     protected void onPostExecute(List<Audio> audios) {
         super.onPostExecute(audios);
-        for (AudioDownloadListener listener: mAudioDownloadListeners) {
+        for (AudioDownloadListener listener : mAudioDownloadListeners) {
             listener.onAudioDownloadComplete(audios);
         }
     }
@@ -76,10 +79,10 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>
         uriBuilder.appendPath("api");
         uriBuilder.appendPath("Audios");
         uriBuilder.authority("www.axelia.us");
-        uriBuilder.appendQueryParameter("locationId",String.valueOf(id));
+        uriBuilder.appendQueryParameter("locationId", String.valueOf(id));
         Uri uri = uriBuilder.build();
-        HttpGet httpGet = new HttpGet(BASE_URL);
-        httpGet.addHeader("Content-type","application/json");
+        HttpGet httpGet = new HttpGet(uri.toString());
+        httpGet.addHeader("Content-type", "application/json");
         StringBuilder builder = new StringBuilder();
         try {
             HttpResponse response = client.execute(httpGet);
@@ -90,11 +93,10 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>
                 InputStream content = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(content));
                 String line;
-                while ((line = reader.readLine()) !=null) {
+                while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
-            }
-            else {
+            } else {
                 Log.e(LOG_TAG, "failed to download jsonList");
             }
         } catch (ClientProtocolException e) {
@@ -108,15 +110,16 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>
         return builder.toString();
     }
 
-    public List<Audio> parseMp3List (String jsonResponse) {
+    public List<Audio> parseMp3List(String jsonResponse) {
         List<Audio> mp3List = new ArrayList<Audio>();
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<Audio>>(){}.getType();
+        Type listType = new TypeToken<List<Audio>>() {
+        }.getType();
         mp3List = gson.fromJson(jsonResponse, listType);
         return mp3List;
     }
 
-    public File downloadMp3 (String url) throws IOException {
+    public File downloadMp3(String url) throws IOException {
         HttpClient client = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(url);
         File outputDir = mContext.getCacheDir();
@@ -142,8 +145,7 @@ public class AudiosDownloaderTask extends AsyncTask<Integer, Float, List<Audio>>
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             if (outputStream != null) {
                 outputStream.close();
             }

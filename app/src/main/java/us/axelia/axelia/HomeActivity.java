@@ -1,19 +1,18 @@
 package us.axelia.axelia;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v4.app.Fragment;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -30,6 +30,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.commonsware.cwac.merge.MergeAdapter;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -38,6 +43,7 @@ import org.json.JSONArray;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -126,7 +132,7 @@ public class HomeActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id==R.id.action_refresh) {
+        if (id == R.id.action_refresh) {
             CitiesListFragment citiesListFragment = (CitiesListFragment) getSupportFragmentManager().findFragmentById(R.id.container);
             citiesListFragment.checkInternetConnection();
         }
@@ -138,11 +144,13 @@ public class HomeActivity extends ActionBarActivity {
      */
     public static class CitiesListFragment extends Fragment implements Response.ErrorListener, Response.Listener<JSONArray> {
         private static final String LOG_TAG = CitiesListFragment.class.getSimpleName();
-        private static final String LOCATION_URL = "http://192.168.1.2/axelia/api/Locations.php";
-        @InjectView(R.id.location_list) ListView locationListView;
+        private static final String LOCATION_URL = "http://axelia.us/api/Locations";
+        @InjectView(R.id.location_list)
+        ListView locationListView;
         private ProgressDialog progressDialog;
         private List<Location> mLocations;
         private MergeAdapter mAdapter;
+        private AdView mAdView;
 
         public CitiesListFragment() {
         }
@@ -154,7 +162,7 @@ public class HomeActivity extends ActionBarActivity {
             checkInternetConnection();
         }
 
-        public void displayNoInternetDialog () {
+        public void displayNoInternetDialog() {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("No hay conexión a internet");
             builder.setMessage("Para poder usar esta aplicación, " +
@@ -171,11 +179,11 @@ public class HomeActivity extends ActionBarActivity {
             AlertDialog dialog = builder.show();
         }
 
-        public void checkInternetConnection () {
+        public void checkInternetConnection() {
             if (BuildConfig.DEBUG) {
                 Log.d(LOG_TAG, "checking internet connection");
             }
-            Handler handler = new Handler(){
+            Handler handler = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
                     super.handleMessage(msg);
@@ -197,10 +205,44 @@ public class HomeActivity extends ActionBarActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_home, container, false);
             ButterKnife.inject(this, rootView);
+            loadAd(rootView);
+            track();
             return rootView;
+        }
+
+        public void track() {
+            Axelia axelia = Axelia.getInstance();
+            Tracker tracker = axelia.getTracker();
+            tracker.setScreenName("Locations Screen");
+            tracker.send(new HitBuilders.AppViewBuilder().build());
+        }
+
+        public void loadAd(View view) {
+            LinearLayout placeholder = (LinearLayout) view.findViewById(R.id.adView);
+            mAdView = new AdView(getActivity());
+            mAdView.setAdSize(AdSize.SMART_BANNER);
+            Random random = new Random();
+            int randomInt = random.nextInt(101);
+            String adCode = "";
+            if (randomInt <= 30) {
+                adCode = "ca-app-pub-7038667452523799/7558607661";
+            } else {
+                adCode = "ca-app-pub-7038667452523799/7558607661";
+            }
+            mAdView.setAdUnitId(adCode);
+            placeholder.addView(mAdView);
+            AdRequest adRequest = new AdRequest.Builder()
+                    .build();
+            mAdView.loadAd(adRequest);
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            mAdView.destroy();
         }
 
         @Override
@@ -212,21 +254,21 @@ public class HomeActivity extends ActionBarActivity {
 
         @Override
         public void onResponse(JSONArray response) {
-            if (progressDialog!=null) {
+            if (progressDialog != null) {
                 progressDialog.dismiss();
                 progressDialog = null;
             }
             mLocations = new ArrayList<Location>();
-            Type listType = new TypeToken<List<Location>>(){}.getType();
+            Type listType = new TypeToken<List<Location>>() {
+            }.getType();
             Gson gson = new Gson();
             mLocations = gson.fromJson(response.toString(), listType);
             List<Location> availableLocations = new ArrayList<Location>();
             List<Location> comingSoonLocations = new ArrayList<Location>();
-            for (Location location: mLocations) {
+            for (Location location : mLocations) {
                 if (location.getAlertMessage().equals("Próximamente")) {
                     comingSoonLocations.add(location);
-                }
-                else {
+                } else {
                     availableLocations.add(location);
                 }
             }
@@ -243,13 +285,12 @@ public class HomeActivity extends ActionBarActivity {
         private View header(String headerText) {
             LayoutInflater inflater = (LayoutInflater) getActivity()
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            if (inflater!=null) {
+            if (inflater != null) {
                 View view = inflater.inflate(R.layout.header_ciudades, null);
                 TextView cityNameHeader = (TextView) view.findViewById(R.id.city_name_header);
                 cityNameHeader.setText(headerText);
                 return view;
-            }
-            else{
+            } else {
                 return null;
             }
         }
@@ -273,7 +314,7 @@ public class HomeActivity extends ActionBarActivity {
         @Override
         public void onDetach() {
             super.onDetach();
-            if (progressDialog!=null) {
+            if (progressDialog != null) {
                 progressDialog.dismiss();
                 progressDialog = null;
             }
@@ -293,7 +334,8 @@ public class HomeActivity extends ActionBarActivity {
     }
 
     public static class AboutFragment extends Fragment {
-        @InjectView(R.id.about_list) ListView listView;
+        @InjectView(R.id.about_list)
+        ListView listView;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -305,7 +347,16 @@ public class HomeActivity extends ActionBarActivity {
             View rootView = inflater.inflate(R.layout.fragment_about, container, false);
             ButterKnife.inject(this, rootView);
             populateInfo();
+            loadAd(rootView);
+            track();
             return rootView;
+        }
+
+        public void track() {
+            Axelia axelia = Axelia.getInstance();
+            Tracker tracker = axelia.getTracker();
+            tracker.setScreenName("About Screen");
+            tracker.send(new HitBuilders.AppViewBuilder().build());
         }
 
         public void populateInfo() {
@@ -321,6 +372,25 @@ public class HomeActivity extends ActionBarActivity {
             mAdapter.addHtmlItem("Twitter: <a href=\"https://twitter.com/AxeliaTransito\">@AxeliaTransito</a>");
             mAdapter.addSeparatorItem("Advertise With Us");
             mAdapter.addItem("Please contact us for information on advertising and promotional opportunities on this app.Email us at axeliatransito@gmail.com.");
+        }
+
+        public void loadAd(View view) {
+            LinearLayout placeholder = (LinearLayout) view.findViewById(R.id.adView);
+            AdView adView = new AdView(getActivity());
+            adView.setAdSize(AdSize.SMART_BANNER);
+            Random random = new Random();
+            int randomInt = random.nextInt(101);
+            String adCode = "";
+            if (randomInt <= 30) {
+                adCode = "ca-app-pub-7038667452523799/7558607661";
+            } else {
+                adCode = "ca-app-pub-7038667452523799/7558607661";
+            }
+            adView.setAdUnitId(adCode);
+            placeholder.addView(adView);
+            AdRequest adRequest = new AdRequest.Builder()
+                    .build();
+            adView.loadAd(adRequest);
         }
 
     }
